@@ -13,10 +13,39 @@ class MainActivity : AppCompatActivity() {
         ActivityMainBinding.inflate(layoutInflater)
     }
 
+    private val viewModel by lazy {
+        ViewModelProvider(this)[MainViewModel::class.java]
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+        observeViewModel()
+        binding.buttonCalculate.setOnClickListener {
+            viewModel.calculate(binding.editTextNumber.text.toString())
+        }
     }
 
+    private fun observeViewModel() {
+        viewModel.state.observe(this) {
+            binding.progressBarLoading.visibility = View.GONE
+            binding.buttonCalculate.isEnabled = true
+            when (it){
+                is Process ->{
+                    binding.progressBarLoading.visibility = View.VISIBLE
+                    binding.buttonCalculate.isEnabled = false
+                }
+                is Error -> {
+                    Toast.makeText(
+                        this,
+                        "You did not entered value",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                is Result -> {
+                    binding.textViewFactorial.text = it.factorial
+                }
+            }
+        }
+    }
 }
